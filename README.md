@@ -1,9 +1,6 @@
-# MATH261A-project
-Repository for simple linear regression project for MATH 261A at SJSU.
+# MATH257A-project
+Repository for project illustrating issues following MANOVA with ANOVA for MATH 257 at SJSU.
 
-## Data 
-
-Data used in this project is obtained from [Harvard Datverse](https://dataverse.harvard.edu/), and was collected by James Navalta, who provide the data under the [Open Data Commons Public Domain Dedication and License](https://opendatacommons.org/licenses/pddl/1-0/).
 
 ## External Resources
 
