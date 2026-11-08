@@ -91,6 +91,11 @@ sum(results_df$p_val_man[results_df$p_val_man>0] < 0.05) / length(results_df$p_v
 sum(results_df$p_val1[results_df$p_val1>0] < 0.05) / length(results_df$p_val1[results_df$p_val1>0])
 sum(results_df$p_val2[results_df$p_val2>0] < 0.05) / length(results_df$p_val2[results_df$p_val1>0])
 sum(results_df$p_val3[results_df$p_val3>0] < 0.05) / length(results_df$p_val3[results_df$p_val1>0])
+
+sum(results_df$p_val_man[results_df$p_val_man>0] < 0.05) 
+sum(results_df$p_val1[results_df$p_val1>0] < 0.05)
+sum(results_df$p_val2[results_df$p_val2>0] < 0.05)
+sum(results_df$p_val3[results_df$p_val3>0] < 0.05)
 # heavily right skewed, clearly not normal, and very large type one errors
 
 #### But what if bonferroni after manova #######
@@ -192,7 +197,6 @@ sum(results_df$p_val3[results_df$p_val3>0] < 0.05) / length(results_df$p_val3[re
 
 # Is there anything WE can possibly do besides collecting more data. Probably not.
 # What if we just do several ANOVAs and correct for multiple comparison
-
 
 ##---Good Data---##
 

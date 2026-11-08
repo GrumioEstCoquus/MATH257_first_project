@@ -1,27 +1,119 @@
 ---
-title: "MANOVA vs. ANOVA"
+title: "Illustration of ANOVA Type I Error Rate After MANOVA"
 author: "Joseph Burks"
+thanks: "Project repository available at: [https://github.com/GrumioEstCoquus/MATH257_first_project](https://github.com/GrumioEstCoquus/MATH257_first_project)."
+date: today
+date-format: long
+abstract: |
+  Temp abstratct
 format: pdf
+bibliography: references.bib
+number-sections: true
+header-includes:
+  \usepackage{bm}
+  \usepackage{float}
+  \floatplacement{figure}{H}
 editor: visual
 ---
 
-## Quarto
-
-Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see <https://quarto.org>.
-
-## Running Code
-
-When you click the **Render** button a document will be generated that includes both content and the output of embedded code. You can embed code like this:
-
 ```{r}
-1 + 1
+#| echo: false
+#| message: false
+#| warning: false
+library(tidyverse)
+library(mvtnorm)
 ```
 
-You can add options to executable code like this
+# Introduction {#sec-intro}
+
+Analysis of variance (ANOVA) is a statistical method that can compare the means of two or more groups. Multivariate analysis of variance (MANOVA) extends ANOVA to multivariate data. MANOVA can compare multidimensional mean vectors between groups simultaneously. This requires adjustments for multiple comparisons for ANOVA. A downside of MANOVA is that it can detect a difference in at least one variable of the mean vectors. It can not tell which variable specifically differs between groups.
+
+Collecting new data can sometimes be difficult and time-consuming. As a result, it may be tempting to follow a significant MANOVA result with several univariate ANOVA tests to determine which variables differ between groups. However, these additional tests on the same data are dangerous. One cannot control the type I error rate. You will find more significant ANOVA tests than one would expect, even if there is truly no difference in means between groups. This report showcases this danger through simulated scenarios. Because of this danger, one may wonder if MANOVA provides any benefits. This report also illustrates cases where MANOVA is much more powerful at detecting differences than ANOVA.
+
+The remainder of this report is structured as follows. @sec-methods discusses the ANOVA and MANOVA models in more detail; @sec-sims explains the simulation scenarios; @sec-results discusses the results, and @sec-disc interprets the results and potential future research.
+
+# Methods {#sec-methods}
+
+ANOVA is a statistical model that allows for comparison of group means. Suppose we have $g$ independent random samples such that
+$$ {X}_{l1},\dots,{X}_{n_l} \sim N(\mu + \tau_l, \sigma^2), \hspace{.1in} l = 1,2,\dots,g $$, where $X_{lj} = \mu + \tau_l + \varepsilon_{lj}$where $\varepsilon_{ij} \overset{\mathrm{iid}}{\sim} N(0,\sigma^2)$  is the value of the $j$th observation of group $l$. $\mu$ is the global mean and $\tau_j$ is the treatment effect of group $j$. $\varepsilon_{lj}$ is the error or noise associated with observation $lj$. ANOVA has the following hypotheses:
+$$H_0: \tau_1 = \tau_2 = \cdots = \tau_g = 0 \hspace{.2in} \mbox{vs.} \hspace{.2in} H_a: \mbox{At least one } \tau_l \neq 0, \mbox{for} l = 1,2,\dots,g$$
+
+The null hypothesis states that the treatment effect for each group is 0, versus the alternative hypothesis that at least one treatment effect is not 0.
+The model for MANOVA is similar to the one for ANOVA. 
+$$ \mathbf{X}_{l1},\dots,\mathbf{X}_{n_l} \sim N_p(\bm{\mu} + \bm{\tau}_l, \mathbf{\Sigma}) $$, with each observation,
+$\mathbf{X}_{lj} = \mathbf{\mu} + \mathbf{\tau}_l + \mathbf{\varepsilon}_{lj}$
+$\mathbf{X}_{lj}$ is the $j$th observation of group l
+$\mathbf{\mu}$ is the global mean vector
+$\mathbf{\tau}_l$ is the treatment effect of group $l$
+$\mathbf{\varepsilon}_{ij}$ is the noise/error associated with observation $\mathbf{X}_{ij}$
+With MANOVA, each of the quantities are now p-dimensional vectors. So the assumptions for MANOVA are similar but are now extended to multidimensional data. The samples must be independent between groups and multivariate normal with a common covariance matrix. The hypotheses we test are the similar to those for ANOVA but now with vectors:
+$$H_0: \bm{\tau}_1 = \bm{\tau}_2 = \cdots = \mathbf{\tau}_g = \mathbf{0} \hspace{.2in} \mbox{vs.} \hspace{.2in} H_a: \mbox{At least one } \mathbf{\tau}_l \neq \mathbf{0}, \mbox{for} l = 1,2,\dots,g$$
+The null hypothesis states that the treatment effect vector for each group is the zero vector. The alternative hypothesis states that at least one of the treatment effect vectors is not the zero vector.
+
+The main difference between ANOVA and MANOVA is that MANOVA allows for multivariate analysis. While ANOVA can make multiple comparisons, it requires running a univariate ANOVA test for each dimension of the mean vector. But, this requires an adjustment for multiple comparisons, such as the Bonferroni correction. On the other hand, MANOVA can make the comparisons simultaneously without needing an adjustment. The trade-off of MANOVA is that it can not tell you which dimension differs between groups, only that at least one does. To identify which variables differ, it can be tempting to run multiple ANOVAs after a significant MANOVA result. However, this can be misleading, as this process will inflate the overall type I error rate. This report will illustrate these issues. The analysis for this paper was done in R [@R-cite], using the manova() and aov() functions.
+
+
+# Simulation {#sec-sims}
+
+This report uses simulated data to showcase the issues with following a significant MANOVA finding with ANOVA. The report generates 3-dimensional data from a multivariate normal distribution. There are three groups. For each group, we draw a sample of size 100 from a multivariate normal distribution with the same mean vector $\bm{\mu} = (0,1,-2)$, and a covariance matrix $\bm{\Sigma}$ that is the identity matrix. With the data, we fit a MANOVA model. If we find a significant result (p-value < 0.05), we fit three univariate ANOVA models, one for each variable. The process was replicated 1000 times.
+
+# Results {#sec-results}
 
 ```{r}
 #| echo: false
-2 * 2
+#| warning: false
+#| message: false
+
+results_df <- readRDS("/Users/joseph/Documents/first_project/math257_first_project/analysis/results_df.rds")
+error_man <- sum(results_df$p_val_man[results_df$p_val_man>0] < 0.05) / length(results_df$p_val_man[results_df$p_val_man>0])
+
+error_x1 <- sum(results_df$p_val1[results_df$p_val1>0] < 0.05) / length(results_df$p_val1[results_df$p_val1>0])
+
+error_x2 <- sum(results_df$p_val2[results_df$p_val2>0] < 0.05) / length(results_df$p_val2[results_df$p_val1>0])
+
+error_x3 <- sum(results_df$p_val3[results_df$p_val3>0] < 0.05) / length(results_df$p_val3[results_df$p_val1>0])
+
+
+bon_x1 <- sum(results_df$p_val1[results_df$p_val1>0] < 0.0125) / length(results_df$p_val1[results_df$p_val1>0])
+
+bon_x2 <- sum(results_df$p_val2[results_df$p_val2>0] < 0.0125) / length(results_df$p_val2[results_df$p_val1>0])
+
+bon_x3 <- sum(results_df$p_val3[results_df$p_val3>0] < 0.0125) / length(results_df$p_val3[results_df$p_val1>0])
+
 ```
 
-The `echo: false` option disables the printing of code (only output is displayed).
+Since the null hypothesis is true in the simulated scenario, the p-value from the MANOVA hypothesis test should follow a Uniform(0,1) distribution. @fig-man-pval-dist is the histogram of p-values obtained from 1000 MANOVA tests. The shape is roughly uniform, which is expected. The total number of tests with a significant p-value is `{r} error_man`. This is very close to the specified type I error.
+
+```{r}
+#| echo: false
+#| warning: false
+#| message: false
+#| label: fig-man-pval-dist
+#| fig-cap: "Distribution of 1000 p-values obtained from MANOVA when the null hypothesis is true.The red line represents the signficance of 0.05"
+temp <- readRDS("/Users/joseph/Documents/first_project/math257_first_project/analysis/man_pval_dist.rds")
+temp
+```
+@fig-anova-pval-dist shows the histograms for the univariate ANOVA tests we performed after significant MANOVA tests. Since the null hypothesis is true, once again the p-values should still follow a Uniform(0,1) distribution. However, @fig-anova-pval-dist clearly shows that this is not the case. 
+
+```{r}
+#| echo: false
+#| warning: false
+#| message: false
+#| label: fig-anova-pval-dist
+#| fig-cap: "Distribution of p-values obtained from 3 univariate ANOVA test when the null hypothesis is true. ANOVA was only run after a significant finding of a MANOVA test. The red line represents the signficance of 0.05."
+temp <- readRDS("/Users/joseph/Documents/first_project/math257_first_project/analysis/anova_pvals_dist.rds")
+temp
+```
+
+For each univariate ANOVA, the distributions of the p-values are heavily right-skewed, with a significant number of p-values are smaller than 0.05. The type I error rates for the three variables are `{r} round(error_x1, 3)`, `{r} round(error_x2, 3)`, `{r} round(error_x3, 3)`, substantially higher than the specified rate of 0.05. Adjustments for multiple comparisons do not adequately address this issue.  A Bonferroni correction lowers the error rate somewhat (Type I error rates: `{r} round(bon_x1, 3) `, `{r} round(bon_x2, 3) `, `{r} round(bon_x3, 3)`), but the type I error rate is still significantly higher than 0.05.
+
+# Discussion {#sec-disc}
+
+The MANOVA simulation results are what we expected. When the null hypothesis is true, the p-value follows a Uniform(0,1) distribution. The type I error rate is 0.047, very close to the significance level of 0.05. The same is not true of the univariate ANOVA tests. Not only are the p-values clearly not uniformly distributed, but the type I error rates are very large. For all three variables, they are around 0.4. Nearly 40% of the ANOVA tests found a significant difference between groups when none exists in the true populations.
+
+This result is not surprising. ANOVA tests were only run after a significant MANOVA test. A significant difference between groups can occur by chance, and we only ran ANOVA when that happened. We ran MANOVA on samples from populations with equal means, so the null hypothesis is true. We did not run ANOVA on every sample, just samples where MANOVA detected a difference, so the null hypothesis is technically not true. We should not expect the p-values to be uniformly distributed in this case. They should be right-skewed, which we observed. ANOVA is confirming the MANOVA’s false positives. That is why it is important to be aware and communicate that these tests are not truly independent.
+
+A valuable next step would be exploring different adjustments and experimental designs for multiple comparisons. This report only examined the Bonferroni correction. Perhaps a method could adequately control the overall type I error rate.
+
+
+# References
